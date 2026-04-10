@@ -1,29 +1,59 @@
 <script>
 let expr = "";
+let cursor = 0;
 let lastAns = 0;
 
 const exprEl = document.getElementById("expr-display");
 const resultEl = document.getElementById("result-display");
 
-function update() {
-  exprEl.textContent = expr;
+function render() {
+  let before = expr.slice(0, cursor);
+  let after = expr.slice(cursor);
+
+  exprEl.innerHTML =
+    before +
+    '<span style="background:#1a2e10;width:6px;display:inline-block;">&nbsp;</span>' +
+    after;
+
   resultEl.textContent = expr ? "" : "0";
 }
 
-function press(val) {
-  if (val === "CLEAR") {
+function insert(val) {
+  expr = expr.slice(0, cursor) + val + expr.slice(cursor);
+  cursor += val.length;
+  render();
+}
+
+function press(key) {
+  if (key === "CLEAR") {
     expr = "";
-    update();
+    cursor = 0;
+    render();
     return;
   }
 
-  if (val === "DEL") {
-    expr = expr.slice(0, -1);
-    update();
+  if (key === "DEL") {
+    if (cursor > 0) {
+      expr = expr.slice(0, cursor - 1) + expr.slice(cursor);
+      cursor--;
+    }
+    render();
     return;
   }
 
-  if (val === "ENTER") {
+  if (key === "LEFT") {
+    cursor = Math.max(0, cursor - 1);
+    render();
+    return;
+  }
+
+  if (key === "RIGHT") {
+    cursor = Math.min(expr.length, cursor + 1);
+    render();
+    return;
+  }
+
+  if (key === "ENTER") {
     try {
       let e = expr
         .replace(/×/g, "*")
@@ -40,28 +70,30 @@ function press(val) {
 
       lastAns = res;
       resultEl.textContent = res;
+
       expr = "";
+      cursor = 0;
     } catch {
       resultEl.textContent = "ERR";
       expr = "";
+      cursor = 0;
     }
     return;
   }
 
-  expr += val;
-  update();
+  if (key === "ANS") {
+    insert(String(lastAns));
+    return;
+  }
+
+  insert(key);
 }
 
-document.querySelectorAll(".key").forEach(btn => {
+document.querySelectorAll("[data-key]").forEach(btn => {
   btn.addEventListener("click", () => {
-    let val = btn.textContent.trim();
-    
-    if (val === "×") val = "×";
-    if (val === "−") val = "−";
-    if (val === "ENTER") val = "ENTER";
-    if (val === "CLEAR") val = "CLEAR";
-
-    press(val);
+    press(btn.dataset.key);
   });
 });
+
+render();
 </script>
