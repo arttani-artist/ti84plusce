@@ -1,110 +1,152 @@
 <!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>ti84 clone</title>
+
+<style>
+body{
+  background:#0c0c12;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  font-family:monospace;
+}
+
+.calc{
+  background:#2a2a2a;
+  padding:15px;
+  border-radius:15px;
+  width:280px;
+  box-shadow:0 10px 30px black;
+}
+
+.screen{
+  background:#a8b98a;
+  height:80px;
+  border-radius:5px;
+  padding:8px;
+  margin-bottom:10px;
+}
+
+.expr{
+  text-align:right;
+  font-size:14px;
+}
+
+.result{
+  text-align:right;
+  font-size:22px;
+  font-weight:bold;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:5px;
+}
+
+button{
+  height:35px;
+  border:none;
+  border-radius:5px;
+  background:#555;
+  color:white;
+  cursor:pointer;
+}
+
+button:active{
+  transform:translateY(2px);
+}
+
+.blue{background:#2d4fa3;}
+.red{background:#a12a2a;}
+.dark{background:#333;}
+</style>
+
+</head>
+
+<body>
+
+<div class="calc">
+
+<div class="screen">
+  <div id="expr" class="expr"></div>
+  <div id="result" class="result">0</div>
+</div>
+
+<div class="grid">
+  <button onclick="press('7')">7</button>
+  <button onclick="press('8')">8</button>
+  <button onclick="press('9')">9</button>
+  <button onclick="press('/')">÷</button>
+  <button class="red" onclick="press('CLEAR')">C</button>
+
+  <button onclick="press('4')">4</button>
+  <button onclick="press('5')">5</button>
+  <button onclick="press('6')">6</button>
+  <button onclick="press('*')">×</button>
+  <button onclick="press('DEL')">DEL</button>
+
+  <button onclick="press('1')">1</button>
+  <button onclick="press('2')">2</button>
+  <button onclick="press('3')">3</button>
+  <button onclick="press('-')">−</button>
+  <button class="blue" onclick="press('ENTER')">ENTER</button>
+
+  <button onclick="press('0')">0</button>
+  <button onclick="press('.')">.</button>
+  <button onclick="press('(')">(</button>
+  <button onclick="press(')')">)</button>
+  <button onclick="press('+')">+</button>
+</div>
+
+</div>
 
 <script>
 let expr = "";
-let cursor = 0;
-let lastAns = 0;
 
-const exprEl = document.getElementById("expr-display");
-const resultEl = document.getElementById("result-display");
+const exprEl = document.getElementById("expr");
+const resultEl = document.getElementById("result");
 
-const keyMap = {
-  ADD: "+",
-  SUB: "-",
-  MUL: "*",
-  DIV: "/",
-  DOT: ".",
-  LPAREN: "(",
-  RPAREN: ")",
-  POW: "**",
-  SIN: "Math.sin(",
-  COS: "Math.cos(",
-  TAN: "Math.tan(",
-  LOG: "Math.log10(",
-  LN: "Math.log(",
-  SQ: "**2"
-};
-
-function render() {
-  let before = expr.slice(0, cursor);
-  let after = expr.slice(cursor);
-
-  exprEl.innerHTML =
-    before +
-    '<span style="background:#1a2e10;width:6px;display:inline-block;">&nbsp;</span>' +
-    after;
-
-  resultEl.textContent = expr ? "" : "0";
+function update(){
+  exprEl.textContent = expr;
+  if(!expr) resultEl.textContent = "0";
 }
 
-function insert(val) {
-  expr = expr.slice(0, cursor) + val + expr.slice(cursor);
-  cursor += val.length;
-  render();
-}
+function press(val){
 
-function press(key) {
-  if (key === "CLEAR") {
+  if(val === "CLEAR"){
     expr = "";
-    cursor = 0;
-    render();
+    update();
     return;
   }
 
-  if (key === "DEL") {
-    if (cursor > 0) {
-      expr = expr.slice(0, cursor - 1) + expr.slice(cursor);
-      cursor--;
-    }
-    render();
+  if(val === "DEL"){
+    expr = expr.slice(0,-1);
+    update();
     return;
   }
 
-  if (key === "LEFT") {
-    cursor = Math.max(0, cursor - 1);
-    render();
-    return;
-  }
-
-  if (key === "RIGHT") {
-    cursor = Math.min(expr.length, cursor + 1);
-    render();
-    return;
-  }
-
-  if (key === "ENTER") {
-    try {
+  if(val === "ENTER"){
+    try{
       let result = Function("return " + expr)();
-      lastAns = result;
       resultEl.textContent = result;
       expr = "";
-      cursor = 0;
-    } catch {
+    }catch{
       resultEl.textContent = "ERR";
       expr = "";
-      cursor = 0;
     }
     return;
   }
 
-  if (key === "ANS") {
-    insert(String(lastAns));
-    return;
-  }
-
-  let val = keyMap[key] ?? key;
-
-  if (/^\d$/.test(key)) val = key;
-
-  insert(val);
+  expr += val;
+  update();
 }
 
-document.querySelectorAll("[data-key]").forEach(btn => {
-  btn.addEventListener("click", () => {
-    press(btn.dataset.key);
-  });
-});
-
-render();
+update();
 </script>
+
+</body>
 </html>
