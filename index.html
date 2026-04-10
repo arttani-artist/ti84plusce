@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+
 <script>
 let expr = "";
 let cursor = 0;
@@ -5,6 +7,23 @@ let lastAns = 0;
 
 const exprEl = document.getElementById("expr-display");
 const resultEl = document.getElementById("result-display");
+
+const keyMap = {
+  ADD: "+",
+  SUB: "-",
+  MUL: "*",
+  DIV: "/",
+  DOT: ".",
+  LPAREN: "(",
+  RPAREN: ")",
+  POW: "**",
+  SIN: "Math.sin(",
+  COS: "Math.cos(",
+  TAN: "Math.tan(",
+  LOG: "Math.log10(",
+  LN: "Math.log(",
+  SQ: "**2"
+};
 
 function render() {
   let before = expr.slice(0, cursor);
@@ -55,22 +74,9 @@ function press(key) {
 
   if (key === "ENTER") {
     try {
-      let e = expr
-        .replace(/×/g, "*")
-        .replace(/÷/g, "/")
-        .replace(/−/g, "-")
-        .replace(/\^/g, "**")
-        .replace(/sin\(/g, "Math.sin(")
-        .replace(/cos\(/g, "Math.cos(")
-        .replace(/tan\(/g, "Math.tan(")
-        .replace(/log\(/g, "Math.log10(")
-        .replace(/ln\(/g, "Math.log(");
-
-      let res = Function("return " + e)();
-
-      lastAns = res;
-      resultEl.textContent = res;
-
+      let result = Function("return " + expr)();
+      lastAns = result;
+      resultEl.textContent = result;
       expr = "";
       cursor = 0;
     } catch {
@@ -86,7 +92,11 @@ function press(key) {
     return;
   }
 
-  insert(key);
+  let val = keyMap[key] ?? key;
+
+  if (/^\d$/.test(key)) val = key;
+
+  insert(val);
 }
 
 document.querySelectorAll("[data-key]").forEach(btn => {
@@ -97,3 +107,4 @@ document.querySelectorAll("[data-key]").forEach(btn => {
 
 render();
 </script>
+</html>
