@@ -77,6 +77,18 @@ button:active{
 </div>
 
 <div class="grid">
+  <button onclick="press('sin(')">sin</button>
+  <button onclick="press('cos(')">cos</button>
+  <button onclick="press('tan(')">tan</button>
+  <button onclick="press('log(')">log</button>
+  <button onclick="press('ln(')">ln</button>
+
+  <button onclick="press('LEFT')">◀</button>
+  <button onclick="press('RIGHT')">▶</button>
+  <button onclick="press('^')">^</button>
+  <button onclick="press('ANS')">ANS</button>
+  <button onclick="press('(')">(</button>
+  
   <button onclick="press('7')">7</button>
   <button onclick="press('8')">8</button>
   <button onclick="press('9')">9</button>
@@ -106,46 +118,99 @@ button:active{
 
 <script>
 let expr = "";
+let cursor = 0;
+let lastAns = 0;
 
 const exprEl = document.getElementById("expr");
 const resultEl = document.getElementById("result");
 
-function update(){
-  exprEl.textContent = expr;
-  if(!expr) resultEl.textContent = "0";
+function render() {
+  let before = expr.slice(0, cursor);
+  let after = expr.slice(cursor);
+
+  exprEl.innerHTML =
+    before +
+    '<span style="background:black;color:#a8b98a;">|</span>' +
+    after;
+
+  if (!expr) resultEl.textContent = "0";
 }
 
-function press(val){
+function insert(val) {
+  expr = expr.slice(0, cursor) + val + expr.slice(cursor);
+  cursor += val.length;
+  render();
+}
 
-  if(val === "CLEAR"){
+function press(key) {
+
+  if (key === "CLEAR") {
     expr = "";
-    update();
+    cursor = 0;
+    render();
     return;
   }
 
-  if(val === "DEL"){
-    expr = expr.slice(0,-1);
-    update();
+  if (key === "DEL") {
+    if (cursor > 0) {
+      expr = expr.slice(0, cursor - 1) + expr.slice(cursor);
+      cursor--;
+    }
+    render();
     return;
   }
 
-  if(val === "ENTER"){
-    try{
-      let result = Function("return " + expr)();
+  if (key === "LEFT") {
+    cursor = Math.max(0, cursor - 1);
+    render();
+    return;
+  }
+
+  if (key === "RIGHT") {
+    cursor = Math.min(expr.length, cursor + 1);
+    render();
+    return;
+  }
+
+  if (key === "ENTER") {
+    try {
+      let e = expr
+        .replace(/sin\(/g, "Math.sin(")
+        .replace(/cos\(/g, "Math.cos(")
+        .replace(/tan\(/g, "Math.tan(")
+        .replace(/log\(/g, "Math.log10(")
+        .replace(/ln\(/g, "Math.log(")
+        .replace(/\^/g, "**");
+
+      let result = Function("return " + e)();
+
+      lastAns = result;
       resultEl.textContent = result;
+
       expr = "";
-    }catch{
+      cursor = 0;
+    } catch {
       resultEl.textContent = "ERR";
       expr = "";
+      cursor = 0;
     }
     return;
   }
 
-  expr += val;
-  update();
+  if (key === "ANS") {
+    insert(String(lastAns));
+    return;
+  }
+
+  insert(key);
 }
 
-update();
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowLeft") press("LEFT");
+  if (e.key === "ArrowRight") press("RIGHT");
+});
+
+render();
 </script>
 
 </body>
