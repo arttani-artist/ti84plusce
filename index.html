@@ -1,0 +1,67 @@
+<script>
+let expr = "";
+let lastAns = 0;
+
+const exprEl = document.getElementById("expr-display");
+const resultEl = document.getElementById("result-display");
+
+function update() {
+  exprEl.textContent = expr;
+  resultEl.textContent = expr ? "" : "0";
+}
+
+function press(val) {
+  if (val === "CLEAR") {
+    expr = "";
+    update();
+    return;
+  }
+
+  if (val === "DEL") {
+    expr = expr.slice(0, -1);
+    update();
+    return;
+  }
+
+  if (val === "ENTER") {
+    try {
+      let e = expr
+        .replace(/×/g, "*")
+        .replace(/÷/g, "/")
+        .replace(/−/g, "-")
+        .replace(/\^/g, "**")
+        .replace(/sin\(/g, "Math.sin(")
+        .replace(/cos\(/g, "Math.cos(")
+        .replace(/tan\(/g, "Math.tan(")
+        .replace(/log\(/g, "Math.log10(")
+        .replace(/ln\(/g, "Math.log(");
+
+      let res = Function("return " + e)();
+
+      lastAns = res;
+      resultEl.textContent = res;
+      expr = "";
+    } catch {
+      resultEl.textContent = "ERR";
+      expr = "";
+    }
+    return;
+  }
+
+  expr += val;
+  update();
+}
+
+document.querySelectorAll(".key").forEach(btn => {
+  btn.addEventListener("click", () => {
+    let val = btn.textContent.trim();
+    
+    if (val === "×") val = "×";
+    if (val === "−") val = "−";
+    if (val === "ENTER") val = "ENTER";
+    if (val === "CLEAR") val = "CLEAR";
+
+    press(val);
+  });
+});
+</script>
